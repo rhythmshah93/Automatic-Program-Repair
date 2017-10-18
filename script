@@ -1,0 +1,29 @@
+#!/bin/bash
+storedpath=$PATH
+basedir=$(pwd)
+subdir=/src/
+dir=$basedir$subdir$1
+tacocodir=$basedir/tacoco
+cd $dir
+if [ -f $FILE ] ; then
+    /bin/rm cp.txt
+fi
+/usr/bin/mvn clean test
+cd ../../scripts/tacoco-scripts
+export PATH=$storedpath
+./clean-tacoco
+cd ../../tacoco
+mvn clean test
+cd ../primitive-hamcrest
+#getting the coverage matrix
+cd $tacocodir/scripts
+export PATH=$storedpath
+./run-tacoco $dir $tacocodir
+cp $basedir/scripts/tacoco-scripts/run-jacoco $tacocodir
+cd $tacocodir
+export PATH=$storedpath
+./run-jacoco $dir $1 $tacocodir
+cd $basedir
+ant compile
+export PATH=$storedpath
+ant -Darg0="$tacocodir/$1-compact-cov-matrix.json" -Darg1=$2.$3 run.tarantula > $basedir/output.txt
